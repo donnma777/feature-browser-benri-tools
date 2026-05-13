@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>広告ブロック & ダークモード</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 300px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #16213e, #0f3460);
+      padding: 14px 20px;
+      text-align: center;
+      border-bottom: 1px solid #0f3460;
+    }
+    .header h1 { font-size: 14px; font-weight: 600; color: #e0e0e0; }
+    .header p { font-size: 10px; color: #7f8c8d; margin-top: 2px; }
+
+    /* タブ */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #0f3460;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 9px 0;
+      background: none;
+      border: none;
+      color: #7f8c8d;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+      border-bottom: 2px solid transparent;
+    }
+    .tab-btn.active {
+      color: #3498db;
+      border-bottom-color: #3498db;
+    }
+    .tab-btn:hover:not(.active) { color: #bdc3c7; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .content { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+    .card {
+      background: #16213e;
+      border-radius: 10px;
+      padding: 12px;
+      border: 1px solid #0f3460;
+    }
+    .card-title {
+      font-size: 10px;
+      color: #7f8c8d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    /* トグルスイッチ */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .toggle-label { font-size: 13px; font-weight: 500; }
+    .toggle-sub { font-size: 11px; color: #7f8c8d; margin-top: 1px; }
+
+    .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background: #34495e; border-radius: 24px; transition: 0.3s;
+    }
+    .slider::before {
+      content: ''; position: absolute;
+      height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background: white; border-radius: 50%; transition: 0.3s;
+    }
+    input:checked + .slider { background: #27ae60; }
+    input:checked + .slider::before { transform: translateX(20px); }
+    .dark-panel input:checked + .slider { background: #1a73e8; }
+
+    /* ステータスバッジ */
+    .status {
+      text-align: center; padding: 7px; border-radius: 8px;
+      font-size: 11px; font-weight: 500; transition: 0.3s;
+    }
+    .status.active {
+      background: rgba(39,174,96,0.15); color: #27ae60;
+      border: 1px solid rgba(39,174,96,0.3);
+    }
+    .status.inactive {
+      background: rgba(231,76,60,0.15); color: #e74c3c;
+      border: 1px solid rgba(231,76,60,0.3);
+    }
+
+    /* 現在のサイト */
+    .site-row {
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 8px;
+    }
+    .site-domain {
+      font-size: 12px; color: #bdc3c7; flex: 1;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    .btn {
+      font-size: 11px; font-weight: 600; padding: 5px 10px;
+      border-radius: 6px; border: none; cursor: pointer;
+      transition: 0.2s; white-space: nowrap;
+    }
+    .btn-exclude {
+      background: rgba(231,76,60,0.2); color: #e74c3c;
+      border: 1px solid rgba(231,76,60,0.4);
+    }
+    .btn-exclude:hover { background: rgba(231,76,60,0.35); }
+    .btn-include {
+      background: rgba(39,174,96,0.2); color: #27ae60;
+      border: 1px solid rgba(39,174,96,0.4);
+    }
+    .btn-include:hover { background: rgba(39,174,96,0.35); }
+
+    /* 除外リスト（広告ブロック） */
+    .exclusion-list {
+      display: flex; flex-direction: column; gap: 5px;
+      max-height: 110px; overflow-y: auto;
+    }
+    .exclusion-list:empty::after {
+      content: '除外サイトはありません';
+      font-size: 11px; color: #4a4a6a;
+      text-align: center; padding: 4px 0;
+    }
+    .exclusion-item {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      background: #0f1a2e; border-radius: 6px;
+      padding: 5px 8px; font-size: 11px;
+    }
+    .exclusion-item span { color: #bdc3c7; flex: 1; }
+    .remove-btn {
+      background: none; border: none; color: #e74c3c;
+      cursor: pointer; font-size: 13px; line-height: 1;
+      padding: 0 2px; opacity: 0.7;
+    }
+    .remove-btn:hover { opacity: 1; }
+
+    /* 統計 */
+    .stat-row {
+      display: flex; justify-content: space-between;
+      font-size: 11px; padding: 2px 0; color: #bdc3c7;
+    }
+    .stat-value { color: #3498db; font-weight: 600; }
+
+    .footer {
+      padding: 8px 16px;
+      text-align: center;
+      font-size: 10px;
+      color: #4a4a6a;
+      border-top: 1px solid #0f3460;
+    }
+    .footer a { color: #3498db; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+
+    /* スクリーンショット */
+    .ss-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 11px 14px;
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 10px;
+      color: #e0e0e0;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+      text-align: left;
+    }
+    .ss-btn:hover:not(:disabled) { background: #1e2d4e; border-color: #3498db; }
+    .ss-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .ss-btn .icon { font-size: 18px; flex-shrink: 0; }
+    .ss-btn .label-main { font-size: 13px; font-weight: 500; }
+    .ss-btn .label-sub { font-size: 10px; color: #7f8c8d; margin-top: 1px; }
+
+    .ss-status {
+      text-align: center;
+      font-size: 11px;
+      padding: 7px;
+      border-radius: 8px;
+      display: none;
+    }
+    .ss-status.info { display: block; background: rgba(52,152,219,0.15); color: #3498db; border: 1px solid rgba(52,152,219,0.3); }
+    .ss-status.success { display: block; background: rgba(39,174,96,0.15); color: #27ae60; border: 1px solid rgba(39,174,96,0.3); }
+    .ss-status.error { display: block; background: rgba(231,76,60,0.15); color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>便利ツール</h1>
+    <p>広告ブロック / ダークモード / スクリーンショット</p>
+  </div>
+
+  <!-- タブ切替 -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="ss">📷 SS</button>
+    <button class="tab-btn" data-tab="ad">🛡 広告</button>
+    <button class="tab-btn" data-tab="dark">🌙 ダーク</button>
+  </div>
+
+  <!-- スクリーンショットパネル -->
+  <div class="tab-panel active" id="panel-ss">
+    <div class="content">
+      <button class="ss-btn" id="ss-visible-btn">
+        <span class="icon">🖥</span>
+        <div>
+          <div class="label-main">表示部分を保存</div>
+          <div class="label-sub">現在見えている範囲だけをキャプチャ</div>
+        </div>
+      </button>
+
+      <button class="ss-btn" id="ss-full-btn">
+        <span class="icon">📄</span>
+        <div>
+          <div class="label-main">ページ全体を保存</div>
+          <div class="label-sub">スクロールしてページ全体を合成</div>
+        </div>
+      </button>
+
+      <div class="ss-status" id="ss-status"></div>
+    </div>
+  </div>
+
+  <!-- 広告ブロックパネル -->
+  <div class="tab-panel" id="panel-ad">
+    <div class="content">
+      <div class="card">
+        <div class="toggle-row">
+          <span class="toggle-label">広告ブロック</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="ad-toggle" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="status active" id="ad-status">保護中</div>
+
+      <div class="card">
+        <div class="card-title">現在のサイト</div>
+        <div class="site-row">
+          <span class="site-domain" id="ad-domain">読み込み中...</span>
+          <button class="btn btn-exclude" id="ad-site-btn">除外する</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">除外サイト一覧</div>
+        <div class="exclusion-list" id="ad-exclusion-list"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">ブロック対象ルール</div>
+        <div class="stat-row">
+          <span>ネットワークルール</span><span class="stat-value">25</span>
+        </div>
+        <div class="stat-row">
+          <span>CSSセレクタ</span><span class="stat-value">40+</span>
+        </div>
+        <div class="stat-row">
+          <span>除外サイト</span><span class="stat-value" id="ad-exclusion-count">0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ダークモードパネル -->
+  <div class="tab-panel dark-panel" id="panel-dark">
+    <div class="content">
+      <div class="card">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">このサイト</div>
+            <div class="toggle-sub" id="dark-hostname">-</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="dark-site-toggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">すべてのサイト</div>
+            <div class="toggle-sub">グローバル設定</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="dark-global-toggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <p style="font-size:10px;color:#4a4a6a;text-align:center;">
+        サイト個別設定はグローバル設定より優先されます
+      </p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="#" id="open-options">設定ページを開く →</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

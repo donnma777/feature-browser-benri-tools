@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>広告ブロッカー</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 300px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #16213e, #0f3460);
+      padding: 16px 20px;
+      text-align: center;
+      border-bottom: 1px solid #0f3460;
+    }
+    .header h1 { font-size: 15px; font-weight: 600; color: #e0e0e0; margin-bottom: 2px; }
+    .header p { font-size: 11px; color: #7f8c8d; }
+
+    .content { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+    .card {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid #0f3460;
+    }
+
+    .card-title {
+      font-size: 10px;
+      color: #7f8c8d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    /* toggle */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .toggle-label { font-size: 14px; font-weight: 500; }
+
+    .toggle-switch { position: relative; width: 44px; height: 24px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background: #34495e; border-radius: 24px; transition: 0.3s;
+    }
+    .slider::before {
+      content: ''; position: absolute;
+      height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background: white; border-radius: 50%; transition: 0.3s;
+    }
+    input:checked + .slider { background: #27ae60; }
+    input:checked + .slider::before { transform: translateX(20px); }
+
+    /* status badge */
+    .status {
+      text-align: center; padding: 8px; border-radius: 8px;
+      font-size: 12px; font-weight: 500; transition: 0.3s;
+    }
+    .status.active {
+      background: rgba(39,174,96,0.15); color: #27ae60;
+      border: 1px solid rgba(39,174,96,0.3);
+    }
+    .status.inactive {
+      background: rgba(231,76,60,0.15); color: #e74c3c;
+      border: 1px solid rgba(231,76,60,0.3);
+    }
+
+    /* current site */
+    .site-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .site-domain {
+      font-size: 12px;
+      color: #bdc3c7;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .btn {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+    .btn-exclude {
+      background: rgba(231,76,60,0.2);
+      color: #e74c3c;
+      border: 1px solid rgba(231,76,60,0.4);
+    }
+    .btn-exclude:hover { background: rgba(231,76,60,0.35); }
+    .btn-include {
+      background: rgba(39,174,96,0.2);
+      color: #27ae60;
+      border: 1px solid rgba(39,174,96,0.4);
+    }
+    .btn-include:hover { background: rgba(39,174,96,0.35); }
+
+    /* exclusion list */
+    .exclusion-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+    .exclusion-list:empty::after {
+      content: '除外サイトはありません';
+      font-size: 11px;
+      color: #4a4a6a;
+      text-align: center;
+      padding: 6px 0;
+    }
+    .exclusion-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0f1a2e;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+    .exclusion-item span { color: #bdc3c7; flex: 1; }
+    .remove-btn {
+      background: none;
+      border: none;
+      color: #e74c3c;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0 2px;
+      opacity: 0.7;
+    }
+    .remove-btn:hover { opacity: 1; }
+
+    /* stats */
+    .stat-row {
+      display: flex; justify-content: space-between;
+      font-size: 12px; padding: 3px 0; color: #bdc3c7;
+    }
+    .stat-value { color: #3498db; font-weight: 600; }
+
+    .footer {
+      padding: 10px 20px;
+      text-align: center;
+      font-size: 10px;
+      color: #4a4a6a;
+      border-top: 1px solid #0f3460;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>広告ブロッカー</h1>
+    <p>ネットワーク & DOM ブロッキング</p>
+  </div>
+
+  <div class="content">
+    <!-- 有効/無効 -->
+    <div class="card">
+      <div class="toggle-row">
+        <span class="toggle-label">広告ブロック</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="status active" id="status">保護中</div>
+
+    <!-- 現在のサイト -->
+    <div class="card">
+      <div class="card-title">現在のサイト</div>
+      <div class="site-row">
+        <span class="site-domain" id="current-domain">読み込み中...</span>
+        <button class="btn btn-exclude" id="site-btn">除外する</button>
+      </div>
+    </div>
+
+    <!-- 除外リスト -->
+    <div class="card">
+      <div class="card-title">除外サイト一覧</div>
+      <div class="exclusion-list" id="exclusion-list"></div>
+    </div>
+
+    <!-- 統計 -->
+    <div class="card">
+      <div class="card-title">ブロック対象ルール</div>
+      <div class="stat-row">
+        <span>ネットワークルール</span><span class="stat-value">25</span>
+      </div>
+      <div class="stat-row">
+        <span>CSSセレクタ</span><span class="stat-value">40+</span>
+      </div>
+      <div class="stat-row">
+        <span>除外サイト</span><span class="stat-value" id="exclusion-count">0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="#" id="open-options" style="color:#3498db;text-decoration:none;font-size:11px;">除外サイトの管理ページを開く →</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

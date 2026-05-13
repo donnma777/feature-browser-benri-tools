@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "スクリーンショット",
+  "version": "1.0.0",
+  "description": "表示部分またはページ全体のスクリーンショットを撮影する拡張機能",
+  "permissions": [
+    "tabs",
+    "scripting",
+    "downloads",
+    "offscreen"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "スクリーンショット",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>スクリーンショット</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 280px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #16213e, #0f3460);
+      padding: 14px 20px;
+      text-align: center;
+      border-bottom: 1px solid #0f3460;
+    }
+    .header h1 { font-size: 14px; font-weight: 600; }
+    .header p  { font-size: 10px; color: #7f8c8d; margin-top: 2px; }
+
+    .content { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+    .ss-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 12px 14px;
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 10px;
+      color: #e0e0e0;
+      cursor: pointer;
+      transition: 0.2s;
+      text-align: left;
+    }
+    .ss-btn:hover:not(:disabled) { background: #1e2d4e; border-color: #3498db; }
+    .ss-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .ss-btn .icon { font-size: 20px; flex-shrink: 0; }
+    .ss-btn .label-main { font-size: 13px; font-weight: 500; }
+    .ss-btn .label-sub  { font-size: 10px; color: #7f8c8d; margin-top: 2px; }
+
+    .status {
+      text-align: center;
+      font-size: 11px;
+      padding: 7px;
+      border-radius: 8px;
+      display: none;
+    }
+    .status.info    { display: block; background: rgba(52,152,219,0.15); color: #3498db; border: 1px solid rgba(52,152,219,0.3); }
+    .status.success { display: block; background: rgba(39,174,96,0.15);  color: #27ae60; border: 1px solid rgba(39,174,96,0.3); }
+    .status.error   { display: block; background: rgba(231,76,60,0.15);  color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📷 スクリーンショット</h1>
+    <p>ページを画像として保存</p>
+  </div>
+
+  <div class="content">
+    <button class="ss-btn" id="ss-visible-btn">
+      <span class="icon">🖥</span>
+      <div>
+        <div class="label-main">表示部分を保存</div>
+        <div class="label-sub">現在見えている範囲だけをキャプチャ</div>
+      </div>
+    </button>
+
+    <button class="ss-btn" id="ss-full-btn">
+      <span class="icon">📄</span>
+      <div>
+        <div class="label-main">ページ全体を保存</div>
+        <div class="label-sub">スクロールしてページ全体を合成</div>
+      </div>
+    </button>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

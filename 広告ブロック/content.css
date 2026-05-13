@@ -1,0 +1,99 @@
+/* Google広告 */
+.adsbygoogle,
+ins.adsbygoogle,
+[id^="google_ads_"],
+[id^="google-ad-"],
+[class*="GoogleAd"],
+[data-ad-client],
+[data-ad-slot] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* 一般的な広告クラス */
+.advertisement,
+.advertise,
+.advertising,
+.ad-banner,
+.ad-block,
+.ad-container,
+.ad-content,
+.ad-frame,
+.ad-placeholder,
+.ad-slot,
+.ad-unit,
+.ad-wrapper,
+.ads-container,
+.ads-wrapper,
+[class^="ad-"],
+[class*=" ad-"],
+[id^="ad-"],
+[id*="-ad-"],
+[id$="-ad"] {
+  display: none !important;
+}
+
+/* バナー広告 */
+.banner-ad,
+.banner_ad,
+.top-banner-ad,
+.sidebar-ad,
+[class*="banner-ad"],
+[class*="banner_ad"] {
+  display: none !important;
+}
+
+/* スポンサーコンテンツ */
+[class*="sponsor"],
+[id*="sponsor"],
+[data-sponsor],
+.sponsored,
+.sponsored-content,
+.sponsored-post,
+.promoted,
+.promoted-content {
+  display: none !important;
+}
+
+/* Taboola / Outbrain */
+.taboola,
+.outbrain,
+[id^="taboola-"],
+[id^="outbrain-"],
+[class^="taboola"],
+[class^="outbrain"],
+#taboola-below-article-thumbnails,
+#RC_WIDGET {
+  display: none !important;
+}
+
+/* YouTube広告 */
+.ytd-promoted-sparkles-web-renderer,
+ytd-promoted-video-renderer,
+ytd-display-ad-renderer,
+ytd-promoted-sparkles-web-renderer,
+.ytd-ad-slot-renderer,
+ytd-ad-slot-renderer,
+#player-ads,
+#masthead-ad {
+  display: none !important;
+}
+
+/* ポップアップ・オーバーレイ */
+[class*="popup-ad"],
+[class*="ad-popup"],
+[id*="popup-ad"],
+[class*="interstitial"],
+[id*="interstitial"] {
+  display: none !important;
+}
+
+/* 浮動広告 */
+[class*="floating-ad"],
+[class*="sticky-ad"],
+[id*="floating-ad"],
+[id*="sticky-ad"] {
+  display: none !important;
+}

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>広告ブロック & ダークモード - 設定</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f0f1a;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #16213e, #0f3460);
+      padding: 20px 40px;
+      border-bottom: 1px solid #0f3460;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .header-text h1 { font-size: 17px; font-weight: 600; }
+    .header-text p { font-size: 11px; color: #7f8c8d; margin-top: 2px; }
+
+    /* タブ */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #0f3460;
+      padding: 0 40px;
+      background: #16213e;
+    }
+    .tab-btn {
+      padding: 12px 24px;
+      background: none;
+      border: none;
+      color: #7f8c8d;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: 0.2s;
+    }
+    .tab-btn.active { color: #3498db; border-bottom-color: #3498db; }
+    .tab-btn:hover:not(.active) { color: #bdc3c7; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .container {
+      max-width: 720px;
+      margin: 32px auto;
+      padding: 0 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background: #16213e;
+      border-radius: 14px;
+      border: 1px solid #0f3460;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid #0f3460;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-header h2 { font-size: 12px; font-weight: 600; color: #bdc3c7; }
+    .card-body { padding: 18px; }
+
+    /* 追加フォーム */
+    .add-form { display: flex; gap: 10px; }
+    .add-form input, .add-input {
+      flex: 1;
+      background: #0f1a2e;
+      border: 1px solid #0f3460;
+      border-radius: 10px;
+      padding: 9px 13px;
+      color: #e0e0e0;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .add-form input:focus, .add-input:focus { border-color: #3498db; }
+    .add-form input::placeholder, .add-input::placeholder { color: #4a4a6a; }
+
+    .btn {
+      padding: 9px 16px;
+      border-radius: 10px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+    .btn-primary { background: #2980b9; color: white; }
+    .btn-primary:hover { background: #3498db; }
+    .btn-danger {
+      background: rgba(231,76,60,0.15); color: #e74c3c;
+      border: 1px solid rgba(231,76,60,0.3); font-size: 12px; padding: 6px 12px;
+    }
+    .btn-danger:hover { background: rgba(231,76,60,0.3); }
+    .btn-secondary {
+      background: #313244; color: #cdd6f4;
+      padding: 7px 14px; font-size: 12px;
+    }
+    .btn-secondary:hover { background: #45475a; }
+
+    .toast {
+      font-size: 12px; padding: 6px 12px; border-radius: 6px;
+      margin-top: 8px; display: none;
+    }
+    .toast.success { background: rgba(39,174,96,0.15); color: #27ae60; border: 1px solid rgba(39,174,96,0.3); }
+    .toast.error   { background: rgba(231,76,60,0.15); color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+
+    .list-controls { display: flex; align-items: center; gap: 8px; }
+    .badge {
+      background: #0f3460; color: #3498db;
+      font-size: 11px; font-weight: 600;
+      padding: 2px 8px; border-radius: 12px;
+    }
+    .search-box {
+      flex: 1; background: #0f1a2e; border: 1px solid #0f3460;
+      border-radius: 8px; padding: 6px 12px; color: #e0e0e0;
+      font-size: 12px; outline: none; transition: border-color 0.2s;
+    }
+    .search-box:focus { border-color: #3498db; }
+    .search-box::placeholder { color: #4a4a6a; }
+
+    /* 広告ブロック除外テーブル */
+    .exclusion-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .exclusion-table th {
+      text-align: left; font-size: 11px; color: #7f8c8d;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 0 0 10px; border-bottom: 1px solid #0f3460;
+    }
+    .exclusion-table th:last-child { text-align: right; }
+    .exclusion-table td {
+      padding: 9px 0; border-bottom: 1px solid rgba(15,52,96,0.5);
+      vertical-align: middle;
+    }
+    .exclusion-table tr:last-child td { border-bottom: none; }
+    .domain-cell { color: #bdc3c7; font-family: monospace; }
+    .action-cell { text-align: right; }
+
+    .remove-btn-tbl {
+      background: none; border: none; color: #e74c3c;
+      cursor: pointer; font-size: 17px; line-height: 1;
+      padding: 2px 6px; border-radius: 4px; opacity: 0.6; transition: 0.15s;
+    }
+    .remove-btn-tbl:hover { opacity: 1; background: rgba(231,76,60,0.15); }
+
+    /* ダークモードサイト一覧 */
+    .site-row-dark {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; gap: 12px; border-bottom: 1px solid rgba(15,52,96,0.5);
+    }
+    .site-row-dark:last-child { border-bottom: none; }
+    .site-name { font-size: 13px; word-break: break-all; color: #bdc3c7; flex: 1; }
+    .dark-badge {
+      font-size: 10px; padding: 2px 8px; border-radius: 99px; flex-shrink: 0;
+    }
+    .badge-excluded { background: #313244; color: #6c7086; }
+    .badge-forced   { background: #1a3a5c; color: #89b4fa; }
+    .remove-btn-dark {
+      flex-shrink: 0; padding: 4px 10px; font-size: 11px;
+      color: #f38ba8; background: none;
+      border: 1px solid rgba(243,139,168,0.3);
+      border-radius: 6px; cursor: pointer; transition: background 0.15s;
+    }
+    .remove-btn-dark:hover { background: rgba(243,139,168,0.1); }
+
+    .empty-state {
+      text-align: center; padding: 28px 0; color: #4a4a6a; font-size: 13px;
+    }
+    .error-msg {
+      font-size: 11px; color: #f38ba8; margin-top: 6px; min-height: 16px;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-text">
+      <h1>広告ブロック & ダークモード — 設定</h1>
+      <p>各機能の除外サイト・個別設定を管理します</p>
+    </div>
+  </div>
+
+  <!-- タブ -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="ad">🛡 広告ブロック 除外サイト</button>
+    <button class="tab-btn" data-tab="dark">🌙 ダークモード 個別設定</button>
+  </div>
+
+  <!-- 広告ブロック設定 -->
+  <div class="tab-panel active" id="panel-ad">
+    <div class="container">
+      <div class="card">
+        <div class="card-header"><h2>サイトを手動で追加</h2></div>
+        <div class="card-body">
+          <div class="add-form">
+            <input type="text" id="ad-domain-input" placeholder="例: youtube.com" autocomplete="off" spellcheck="false">
+            <button class="btn btn-primary" id="ad-add-btn">追加</button>
+          </div>
+          <div class="toast" id="ad-toast"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>除外サイト一覧 <span class="badge" id="ad-count-badge">0</span></h2>
+          <div class="list-controls">
+            <input class="search-box" type="text" id="ad-search" placeholder="絞り込み..." autocomplete="off">
+            <button class="btn btn-danger" id="ad-clear-btn">すべて削除</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <table class="exclusion-table" id="ad-exclusion-table">
+            <thead>
+              <tr><th>ドメイン</th><th></th></tr>
+            </thead>
+            <tbody id="ad-exclusion-tbody"></tbody>
+          </table>
+          <div class="empty-state hidden" id="ad-empty">除外サイトはまだありません</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ダークモード設定 -->
+  <div class="tab-panel" id="panel-dark">
+    <div class="container">
+      <div class="card">
+        <div class="card-header"><h2>除外サイトを追加</h2></div>
+        <div class="card-body">
+          <div class="add-form">
+            <input class="add-input" id="dark-add-input" type="text" placeholder="example.com" autocomplete="off">
+            <button class="btn btn-primary" id="dark-add-btn">除外に追加</button>
+          </div>
+          <div class="error-msg" id="dark-add-error"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>個別設定一覧</h2>
+          <button class="btn btn-danger" id="dark-clear-btn">すべてリセット</button>
+        </div>
+        <div class="card-body" id="dark-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
