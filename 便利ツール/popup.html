@@ -224,6 +224,22 @@
     .ss-status.info { display: block; background: rgba(52,152,219,0.15); color: #3498db; border: 1px solid rgba(52,152,219,0.3); }
     .ss-status.success { display: block; background: rgba(39,174,96,0.15); color: #27ae60; border: 1px solid rgba(39,174,96,0.3); }
     .ss-status.error { display: block; background: rgba(231,76,60,0.15); color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+
+    /* 表示モードのシミュレート（segmented control） */
+    .segmented {
+      display: flex; background: #0f1a2e; border-radius: 8px;
+      padding: 3px; gap: 3px;
+    }
+    .segmented button {
+      flex: 1; padding: 7px 0; border: none; border-radius: 6px;
+      background: none; color: #7f8c8d; font-size: 11px; font-weight: 600;
+      cursor: pointer; transition: 0.2s;
+    }
+    .segmented button.active { background: #1a73e8; color: #fff; }
+    .segmented button:hover:not(.active) { color: #bdc3c7; }
+    .emulate-note {
+      font-size: 10px; color: #4a4a6a; margin-top: 8px; line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -334,6 +350,18 @@
       <p style="font-size:10px;color:#4a4a6a;text-align:center;">
         サイト個別設定はグローバル設定より優先されます
       </p>
+
+      <div class="card">
+        <div class="card-title">表示モードのシミュレート（このタブのみ）</div>
+        <div class="segmented">
+          <button data-scheme="auto" id="scheme-auto">OFF</button>
+          <button data-scheme="light" id="scheme-light">ライト</button>
+          <button data-scheme="dark" id="scheme-dark">ダーク</button>
+        </div>
+        <div class="emulate-note">
+          OSやブラウザの設定に関わらず、prefers-color-scheme を偽装してこのタブだけ確認できます。デバッグ中を示す黄色いバーが表示されます。タブを閉じる/離れると自動解除されます。
+        </div>
+      </div>
     </div>
   </div>
 

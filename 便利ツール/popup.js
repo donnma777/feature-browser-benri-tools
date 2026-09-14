@@ -194,6 +194,43 @@ darkSiteToggle.addEventListener('change', async () => {
 });
 
 // ============================================================
+// 表示モードのシミュレート（prefers-color-scheme 偽装）
+// ============================================================
+
+const schemeButtons = {
+  auto: document.getElementById('scheme-auto'),
+  light: document.getElementById('scheme-light'),
+  dark: document.getElementById('scheme-dark'),
+};
+
+function applySchemeButtons(scheme) {
+  for (const [key, btn] of Object.entries(schemeButtons)) {
+    btn.classList.toggle('active', key === scheme);
+  }
+}
+
+async function initSchemeEmulation() {
+  if (!darkTab?.id) return;
+  chrome.runtime.sendMessage({ type: 'GET_COLOR_SCHEME', tabId: darkTab.id }, (res) => {
+    applySchemeButtons(res?.scheme ?? 'auto');
+  });
+}
+
+for (const [scheme, btn] of Object.entries(schemeButtons)) {
+  btn.addEventListener('click', () => {
+    if (!darkTab?.id) return;
+    chrome.runtime.sendMessage({ type: 'SET_COLOR_SCHEME', tabId: darkTab.id, scheme }, (res) => {
+      if (res?.ok) {
+        applySchemeButtons(scheme);
+      } else {
+        applySchemeButtons('auto');
+        alert(`表示モードの切り替えに失敗しました: ${res?.error ?? '不明なエラー'}`);
+      }
+    });
+  });
+}
+
+// ============================================================
 // 共通：現在のサイト取得 & オプションページ
 // ============================================================
 
@@ -221,7 +258,7 @@ document.getElementById('open-options').addEventListener('click', (e) => {
   chrome.runtime.openOptionsPage();
 });
 
-initDarkPopup();
+initDarkPopup().then(initSchemeEmulation);
 
 // ============================================================
 // スクリーンショット
