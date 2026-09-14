@@ -15,8 +15,7 @@ ins.adsbygoogle,
 .advertisement, .advertise, .advertising,
 .ad-banner, .ad-block, .ad-container, .ad-content,
 .ad-frame, .ad-placeholder, .ad-unit, .ad-wrapper,
-.ads-container, .ads-wrapper,
-[class^="ad-"], [id^="ad-"] {
+.ads-container, .ads-wrapper {
   display: none !important;
 }
 
@@ -74,6 +73,12 @@ const AD_SELECTORS = [
 
 function currentDomain() {
   return location.hostname.replace(/^www\./, '').toLowerCase();
+}
+
+// 除外ドメインは、サブドメイン（例: m.youtube.com, music.youtube.com）も
+// まとめて対象にするため、完全一致だけでなく親ドメイン一致も見る。
+function isExcludedDomain(hostname, exclusions) {
+  return exclusions.some((d) => hostname === d || hostname.endsWith(`.${d}`));
 }
 
 function injectCSS() {
@@ -138,6 +143,6 @@ function startBlocking() {
 chrome.runtime.sendMessage({ type: 'GET_CONFIG' }, (config) => {
   if (chrome.runtime.lastError || !config) return;
   if (!config.enabled) return;
-  if ((config.exclusions ?? []).includes(currentDomain())) return;
+  if (isExcludedDomain(currentDomain(), config.exclusions ?? [])) return;
   startBlocking();
 });

@@ -39,9 +39,16 @@ function renderExclusions() {
   });
 }
 
+// 現在のサイトが除外リストのどの項目で除外されているかを調べる。
+// 完全一致がなければ、親ドメイン一致（例: youtube.com が m.youtube.com を含む）も見る。
+function findMatchingExclusion(hostname, list) {
+  if (list.includes(hostname)) return hostname;
+  return list.find((d) => hostname.endsWith(`.${d}`)) ?? null;
+}
+
 function updateSiteButton() {
   if (!currentDomain) return;
-  const excluded = exclusions.includes(currentDomain);
+  const excluded = !!findMatchingExclusion(currentDomain, exclusions);
   siteBtn.textContent = excluded ? '除外を解除' : '除外する';
   siteBtn.className = `btn ${excluded ? 'btn-include' : 'btn-exclude'}`;
 }
@@ -110,8 +117,9 @@ document.getElementById('open-options').addEventListener('click', (e) => {
 
 siteBtn.addEventListener('click', () => {
   if (!currentDomain) return;
-  if (exclusions.includes(currentDomain)) {
-    removeExclusion(currentDomain);
+  const match = findMatchingExclusion(currentDomain, exclusions);
+  if (match) {
+    removeExclusion(match);
   } else {
     addExclusion(currentDomain);
   }
