@@ -3,7 +3,7 @@
   "name": "強制ダークモード",
   "version": "1.0.0",
   "description": "ワンクリックで任意のページをダークモードに切り替えます",
-  "permissions": ["storage", "scripting", "tabs"],
+  "permissions": ["storage", "scripting", "tabs", "debugger"],
   "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "popup.html",

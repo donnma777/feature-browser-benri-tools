@@ -75,4 +75,37 @@
   document.getElementById('open-options').addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
   });
+
+  // 表示モードのシミュレート（prefers-color-scheme 偽装）
+  const schemeButtons = {
+    auto: document.getElementById('scheme-auto'),
+    light: document.getElementById('scheme-light'),
+    dark: document.getElementById('scheme-dark'),
+  };
+
+  function applySchemeButtons(scheme) {
+    for (const [key, btn] of Object.entries(schemeButtons)) {
+      btn.classList.toggle('active', key === scheme);
+    }
+  }
+
+  if (tab?.id) {
+    chrome.runtime.sendMessage({ type: 'GET_COLOR_SCHEME', tabId: tab.id }, (res) => {
+      applySchemeButtons(res?.scheme ?? 'auto');
+    });
+  }
+
+  for (const [scheme, btn] of Object.entries(schemeButtons)) {
+    btn.addEventListener('click', () => {
+      if (!tab?.id) return;
+      chrome.runtime.sendMessage({ type: 'SET_COLOR_SCHEME', tabId: tab.id, scheme }, (res) => {
+        if (res?.ok) {
+          applySchemeButtons(scheme);
+        } else {
+          applySchemeButtons('auto');
+          alert(`表示モードの切り替えに失敗しました: ${res?.error ?? '不明なエラー'}`);
+        }
+      });
+    });
+  }
 })();

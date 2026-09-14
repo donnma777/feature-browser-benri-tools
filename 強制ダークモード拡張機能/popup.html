@@ -116,6 +116,54 @@
     .options-link:hover {
       color: #cdd6f4;
     }
+
+    .scheme-section {
+      padding: 14px 16px;
+      border-top: 1px solid #313244;
+    }
+
+    .scheme-title {
+      font-size: 11px;
+      color: #6c7086;
+      margin-bottom: 8px;
+    }
+
+    .segmented {
+      display: flex;
+      background: #181825;
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .segmented button {
+      flex: 1;
+      padding: 7px 0;
+      border: none;
+      border-radius: 6px;
+      background: none;
+      color: #6c7086;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .segmented button.active {
+      background: #1a73e8;
+      color: #fff;
+    }
+
+    .segmented button:hover:not(.active) {
+      color: #cdd6f4;
+    }
+
+    .scheme-note {
+      font-size: 10px;
+      color: #45475a;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -141,6 +189,18 @@
       <input type="checkbox" id="global-toggle">
       <span class="slider"></span>
     </label>
+  </div>
+
+  <div class="scheme-section">
+    <div class="scheme-title">表示モードのシミュレート（このタブのみ）</div>
+    <div class="segmented">
+      <button data-scheme="auto" id="scheme-auto">OFF</button>
+      <button data-scheme="light" id="scheme-light">ライト</button>
+      <button data-scheme="dark" id="scheme-dark">ダーク</button>
+    </div>
+    <div class="scheme-note">
+      OSやブラウザの設定に関わらず、prefers-color-scheme を偽装してこのタブだけ確認できます。デバッグ中を示す黄色いバーが表示されます。タブを閉じる/離れると自動解除されます。
+    </div>
   </div>
 
   <button class="options-link" id="open-options">⚙ 除外リストを管理</button>
