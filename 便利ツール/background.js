@@ -6,10 +6,60 @@
 
 const AD_DEFAULT_STATE = { enabled: true };
 const DYNAMIC_RULE_BASE_ID = 10000;
+const SESSION_RULE_BASE_ID = 20000;
 const RESOURCE_TYPES = [
   'script', 'sub_frame', 'xmlhttprequest', 'image',
   'stylesheet', 'font', 'media', 'websocket', 'other',
 ];
+
+// 除外ドメインは、サブドメイン（例: m.youtube.com, music.youtube.com）も
+// まとめて対象にするため、完全一致だけでなく親ドメイン一致も見る。
+function isExcludedDomain(hostname, exclusions) {
+  return exclusions.some((d) => hostname === d || hostname.endsWith(`.${d}`));
+}
+
+// タブ単位の除外ルール。
+// initiatorDomains ベースの除外は、広告配信元自身がホストする
+// iframe（例: googlesyndication.com 上の広告クリエイティブ）から発生する
+// リクエストの initiator がそのタブのトップページのドメインにならないため
+// 素通りできない。tabIds 条件を使った allowAllRequests ルールなら、
+// initiator に関わらずそのタブ内の通信を丸ごと許可できる。
+async function syncTabExclusionRules() {
+  const data = await chrome.storage.local.get(['state', 'exclusions']);
+  const enabled = data.state?.enabled ?? true;
+  const exclusions = data.exclusions ?? [];
+
+  const existing = await chrome.declarativeNetRequest.getSessionRules();
+  const removeRuleIds = existing
+    .filter((r) => r.id >= SESSION_RULE_BASE_ID)
+    .map((r) => r.id);
+
+  const addRules = [];
+  if (enabled && exclusions.length > 0) {
+    const tabs = await chrome.tabs.query({});
+    let idx = 0;
+    for (const tab of tabs) {
+      if (!tab.id || !tab.url) continue;
+      let hostname = '';
+      try { hostname = new URL(tab.url).hostname.toLowerCase(); } catch { continue; }
+      if (!isExcludedDomain(hostname, exclusions)) continue;
+
+      addRules.push({
+        id: SESSION_RULE_BASE_ID + idx++,
+        priority: 2,
+        action: { type: 'allowAllRequests' },
+        condition: { tabIds: [tab.id], resourceTypes: ['main_frame', 'sub_frame'] },
+      });
+    }
+  }
+
+  await chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds, addRules });
+}
+
+chrome.tabs.onUpdated.addListener((_tabId, info) => {
+  if (info.status === 'complete' || info.url) syncTabExclusionRules();
+});
+chrome.tabs.onRemoved.addListener(() => syncTabExclusionRules());
 
 // ============================================================
 // ダークモード
@@ -51,6 +101,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   }
   updateAdIcon(stored.state?.enabled ?? true);
   await rebuildDynamicRules(stored.exclusions ?? []);
+  await syncTabExclusionRules();
 });
 
 // ============================================================
@@ -89,6 +140,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         await chrome.declarativeNetRequest.updateEnabledRulesets({ disableRulesetIds: [rulesetId] });
       }
 
+      await syncTabExclusionRules();
+      await broadcastAdConfig();
       sendResponse(next);
     });
     return true;
@@ -111,6 +164,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       const next = [...list, domain];
       await chrome.storage.local.set({ exclusions: next });
       await rebuildDynamicRules(next);
+      await syncTabExclusionRules();
+      await broadcastAdConfig();
       sendResponse({ ok: true, exclusions: next });
     });
     return true;
@@ -122,6 +177,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       const next = (data.exclusions ?? []).filter((d) => d !== domain);
       await chrome.storage.local.set({ exclusions: next });
       await rebuildDynamicRules(next);
+      await syncTabExclusionRules();
+      await broadcastAdConfig();
       sendResponse({ ok: true, exclusions: next });
     });
     return true;
@@ -131,6 +188,19 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 // ============================================================
 // ユーティリティ（広告ブロック）
 // ============================================================
+
+async function broadcastAdConfig() {
+  const data = await chrome.storage.local.get(['state', 'exclusions']);
+  const config = {
+    enabled: data.state?.enabled ?? true,
+    exclusions: data.exclusions ?? [],
+  };
+  const tabs = await chrome.tabs.query({});
+  for (const tab of tabs) {
+    if (!tab.id) continue;
+    chrome.tabs.sendMessage(tab.id, { type: 'AD_CONFIG_CHANGED', config }).catch(() => {});
+  }
+}
 
 function normalizeDomain(raw) {
   if (!raw) return null;

@@ -103,6 +103,14 @@
       border: 1px solid rgba(231,76,60,0.3);
     }
 
+    .reload-hint {
+      text-align: center; padding: 6px 8px; border-radius: 8px;
+      font-size: 10.5px; font-weight: 500;
+      background: rgba(241,196,15,0.15); color: #f1c40f;
+      border: 1px solid rgba(241,196,15,0.3);
+    }
+    .reload-hint[hidden] { display: none; }
+
     /* 現在のサイト */
     .site-row {
       display: flex; align-items: center;
@@ -111,6 +119,19 @@
     .site-domain {
       font-size: 12px; color: #bdc3c7; flex: 1;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    .site-status {
+      margin-top: 8px; padding: 5px 8px; border-radius: 6px;
+      font-size: 10.5px; font-weight: 500; text-align: center;
+    }
+    .site-status.on {
+      background: rgba(39,174,96,0.15); color: #27ae60;
+      border: 1px solid rgba(39,174,96,0.3);
+    }
+    .site-status.off {
+      background: rgba(127,140,141,0.15); color: #7f8c8d;
+      border: 1px solid rgba(127,140,141,0.3);
     }
 
     .btn {
@@ -255,6 +276,7 @@
       </div>
 
       <div class="status active" id="ad-status">保護中</div>
+      <div class="reload-hint" id="ad-reload-hint" hidden>⚠️ 完全に反映するには、対象タブの再読み込みが必要です</div>
 
       <div class="card">
         <div class="card-title">現在のサイト</div>
@@ -262,11 +284,7 @@
           <span class="site-domain" id="ad-domain">読み込み中...</span>
           <button class="btn btn-exclude" id="ad-site-btn">除外する</button>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">除外サイト一覧</div>
-        <div class="exclusion-list" id="ad-exclusion-list"></div>
+        <div class="site-status on" id="ad-site-status"></div>
       </div>
 
       <div class="card">

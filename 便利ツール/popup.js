@@ -21,8 +21,13 @@ const adToggle = document.getElementById('ad-toggle');
 const adStatus = document.getElementById('ad-status');
 const adDomainEl = document.getElementById('ad-domain');
 const adSiteBtn = document.getElementById('ad-site-btn');
-const adExclusionList = document.getElementById('ad-exclusion-list');
 const adExclusionCount = document.getElementById('ad-exclusion-count');
+const adSiteStatus = document.getElementById('ad-site-status');
+const adReloadHint = document.getElementById('ad-reload-hint');
+
+function showAdReloadHint() {
+  adReloadHint.hidden = false;
+}
 
 let adCurrentDomain = null;
 let adExclusions = [];
@@ -38,29 +43,28 @@ function normalizeDomain(hostname) {
 }
 
 function renderAdExclusions() {
-  adExclusionList.innerHTML = '';
   adExclusionCount.textContent = adExclusions.length;
+}
 
-  for (const domain of adExclusions) {
-    const item = document.createElement('div');
-    item.className = 'exclusion-item';
-    item.innerHTML = `
-      <span>${domain}</span>
-      <button class="remove-btn" data-domain="${domain}" title="除外を解除">×</button>
-    `;
-    adExclusionList.appendChild(item);
-  }
-
-  adExclusionList.querySelectorAll('.remove-btn').forEach((btn) => {
-    btn.addEventListener('click', () => removeAdExclusion(btn.dataset.domain));
-  });
+// 現在のサイトが除外リストのどの項目で除外されているかを調べる。
+// 完全一致がなければ、親ドメイン一致（例: youtube.com が m.youtube.com を含む）も見る。
+function findMatchingExclusion(hostname, exclusions) {
+  if (exclusions.includes(hostname)) return hostname;
+  return exclusions.find((d) => hostname.endsWith(`.${d}`)) ?? null;
 }
 
 function updateAdSiteBtn() {
   if (!adCurrentDomain) return;
-  const excluded = adExclusions.includes(adCurrentDomain);
+  const match = findMatchingExclusion(adCurrentDomain, adExclusions);
+  const excluded = !!match;
+
   adSiteBtn.textContent = excluded ? '除外を解除' : '除外する';
   adSiteBtn.className = `btn ${excluded ? 'btn-include' : 'btn-exclude'}`;
+
+  adSiteStatus.textContent = excluded
+    ? (match === adCurrentDomain ? '🚫 このサイトは除外中（広告ブロック対象外）' : `🚫 このサイトは除外中（${match} の設定による）`)
+    : '🛡 このサイトはブロック対象';
+  adSiteStatus.className = `site-status ${excluded ? 'off' : 'on'}`;
 }
 
 function addAdExclusion(domain) {
@@ -69,6 +73,7 @@ function addAdExclusion(domain) {
       adExclusions = res.exclusions;
       renderAdExclusions();
       updateAdSiteBtn();
+      showAdReloadHint();
     }
   });
 }
@@ -79,6 +84,7 @@ function removeAdExclusion(domain) {
       adExclusions = res.exclusions;
       renderAdExclusions();
       updateAdSiteBtn();
+      showAdReloadHint();
     }
   });
 }
@@ -96,13 +102,15 @@ chrome.runtime.sendMessage({ type: 'GET_EXCLUSIONS' }, (list) => {
 adToggle.addEventListener('change', () => {
   chrome.runtime.sendMessage({ type: 'TOGGLE' }, (state) => {
     applyAdState(state?.enabled ?? true);
+    showAdReloadHint();
   });
 });
 
 adSiteBtn.addEventListener('click', () => {
   if (!adCurrentDomain) return;
-  if (adExclusions.includes(adCurrentDomain)) {
-    removeAdExclusion(adCurrentDomain);
+  const match = findMatchingExclusion(adCurrentDomain, adExclusions);
+  if (match) {
+    removeAdExclusion(match);
   } else {
     addAdExclusion(adCurrentDomain);
   }
