@@ -62,3 +62,11 @@ Chrome 拡張機能をまとめたリポジトリです。
 - Manifest V3
 - Chrome 109 以上推奨（`offscreen` API 使用）
 - 権限: `declarativeNetRequest` / `storage` / `tabs` / `scripting` / `downloads` / `offscreen` / `debugger`（機能により異なる）
+
+---
+
+## ©️ ライセンス
+
+自分で使うこと・自分で使うための編集はできますが、ファイルの二次配布・公開（編集したものも含む）はできません。配布・公開したいときは、先に許可を取ってください（[お問い合わせフォーム](https://donnma.com/form/) または X の [@donnma777](https://twitter.com/donnma777)）。
+
+詳しくは [LICENSE](LICENSE) を見てください。
